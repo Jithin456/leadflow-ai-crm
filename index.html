@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LeadFlow AI — Intelligent CRM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Instrument+Serif:ital@0;1&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0a0b0d;
+    --bg2: #111318;
+    --bg3: #171a21;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #e8eaf0;
+    --text2: #8b90a0;
+    --text3: #555a6b;
+    --accent: #6ee7b7;
+    --accent2: #3d9e7a;
+    --purple: #a78bfa;
+    --blue: #60a5fa;
+    --amber: #fbbf24;
+    --red: #f87171;
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Sora', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; height: 56px; border-bottom: 1px solid var(--border); background: rgba(10,11,13,0.9); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 100; }
+  .logo { font-family: 'Instrument Serif', serif; font-size: 1.4rem; color: var(--text); display: flex; align-items: center; gap: 8px; }
+  .logo span { color: var(--accent); }
+  .nav-tabs { display: flex; gap: 4px; }
+  .nav-tab { padding: 6px 14px; border-radius: 6px; font-size: 0.78rem; font-weight: 500; cursor: pointer; transition: all 0.15s; color: var(--text2); border: none; background: none; letter-spacing: 0.02em; }
+  .nav-tab:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+  .nav-tab.active { color: var(--accent); background: rgba(110,231,183,0.08); }
+  .nav-actions { display: flex; gap: 8px; align-items: center; }
+  .badge-count { background: var(--accent); color: #0a0b0d; font-size: 0.65rem; font-weight: 600; padding: 1px 6px; border-radius: 99px; }
+  .panel { display: none; flex: 1; padding: 2rem; animation: fadeUp 0.25s ease; }
+  .panel.active { display: block; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .page-header { margin-bottom: 2rem; }
+  .page-header h1 { font-family: 'Instrument Serif', serif; font-size: 2rem; font-weight: 400; color: var(--text); margin-bottom: 4px; }
+  .page-header p { font-size: 0.82rem; color: var(--text2); }
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 2rem; }
+  .stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.1rem 1.25rem; }
+  .stat-label { font-size: 0.72rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+  .stat-value { font-size: 1.8rem; font-weight: 600; line-height: 1; }
+  .stat-delta { font-size: 0.72rem; color: var(--accent); margin-top: 4px; }
+  .import-zone { border: 1.5px dashed var(--border2); border-radius: var(--radius-lg); padding: 2.5rem; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 1.5rem; }
+  .import-zone:hover, .import-zone.drag { border-color: var(--accent); background: rgba(110,231,183,0.03); }
+  .import-zone h3 { font-size: 1rem; font-weight: 500; margin-bottom: 6px; }
+  .import-zone p { font-size: 0.78rem; color: var(--text2); }
+  #csv-input { display: none; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: var(--radius); font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: all 0.15s; border: none; font-family: 'Sora', sans-serif; letter-spacing: 0.02em; }
+  .btn-primary { background: var(--accent); color: #0a0b0d; }
+  .btn-primary:hover { background: #86efac; transform: translateY(-1px); }
+  .btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border2); }
+  .btn-ghost:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+  .btn-sm { padding: 5px 11px; font-size: 0.74rem; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .table-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  thead tr { border-bottom: 1px solid var(--border); }
+  thead th { padding: 10px 14px; text-align: left; font-size: 0.7rem; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; cursor: pointer; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(255,255,255,0.025); }
+  tbody td { padding: 11px 14px; color: var(--text2); vertical-align: middle; }
+  tbody td.name-cell { color: var(--text); font-weight: 500; }
+  .status-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 99px; font-size: 0.7rem; font-weight: 500; }
+  .status-new { background: rgba(96,165,250,0.12); color: var(--blue); }
+  .status-enriched { background: rgba(167,139,250,0.12); color: var(--purple); }
+  .status-emailed { background: rgba(110,231,183,0.12); color: var(--accent); }
+  .status-replied { background: rgba(251,191,36,0.12); color: var(--amber); }
+  .score-bar { display: flex; align-items: center; gap: 8px; }
+  .score-track { width: 64px; height: 4px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .score-fill { height: 100%; border-radius: 99px; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 200; display: none; align-items: center; justify-content: center; padding: 1rem; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--radius-lg); width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto; padding: 2rem; position: relative; }
+  .modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--text2); cursor: pointer; font-size: 1.2rem; padding: 4px; }
+  .modal-close:hover { color: var(--text); }
+  .modal h2 { font-family: 'Instrument Serif', serif; font-size: 1.5rem; font-weight: 400; margin-bottom: 1.5rem; color: var(--text); }
+  .modal-section { margin-bottom: 1.5rem; }
+  .modal-section label { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text3); margin-bottom: 6px; font-weight: 500; }
+  .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .modal-field { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem 1rem; }
+  .modal-field-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text3); margin-bottom: 3px; }
+  .modal-field-value { font-size: 0.85rem; color: var(--text); }
+  .email-box { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem; }
+  .email-box textarea { width: 100%; background: transparent; border: none; outline: none; color: var(--text); font-family: 'Sora', sans-serif; font-size: 0.83rem; line-height: 1.65; resize: none; min-height: 160px; }
+  .email-actions { display: flex; gap: 8px; margin-top: 12px; justify-content: flex-end; }
+  .ai-loader { display: flex; align-items: center; gap: 8px; color: var(--text3); font-size: 0.78rem; padding: 8px 0; }
+  .ai-loader .dots span { display: inline-block; width: 4px; height: 4px; border-radius: 50%; background: var(--accent); margin: 0 1.5px; animation: blink 1.2s infinite; }
+  .ai-loader .dots span:nth-child(2) { animation-delay: 0.2s; }
+  .ai-loader .dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink { 0%,80%,100% { opacity: 0.2; } 40% { opacity: 1; } }
+  .pipeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .pipeline-col { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; min-height: 300px; }
+  .pipeline-col-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+  .pipeline-col-title { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; }
+  .col-count { background: var(--bg3); border: 1px solid var(--border); border-radius: 99px; padding: 1px 8px; font-size: 0.68rem; color: var(--text2); }
+  .pipeline-card { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.85rem; margin-bottom: 8px; cursor: pointer; transition: border-color 0.15s; }
+  .pipeline-card:hover { border-color: var(--border2); }
+  .pipeline-card-name { font-size: 0.82rem; font-weight: 500; margin-bottom: 3px; color: var(--text); }
+  .pipeline-card-company { font-size: 0.72rem; color: var(--text2); margin-bottom: 8px; }
+  .pipeline-card-score { display: flex; align-items: center; justify-content: space-between; }
+  .enrich-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 1rem; }
+  .enrich-tag { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 12px; }
+  .enrich-tag-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text3); margin-bottom: 2px; }
+  .enrich-tag-value { font-size: 0.82rem; color: var(--text); }
+  .toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--bg3); border: 1px solid var(--accent); border-radius: var(--radius); padding: 10px 16px; font-size: 0.8rem; color: var(--accent); z-index: 999; transform: translateY(80px); opacity: 0; transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .flex-between { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+  .flex-gap { display: flex; align-items: center; gap: 8px; }
+  .empty-state { text-align: center; padding: 4rem 2rem; color: var(--text3); }
+  .empty-state h3 { font-size: 1rem; color: var(--text2); margin-bottom: 6px; }
+  .empty-state p { font-size: 0.8rem; }
+  hr { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+  .insight-card { background: rgba(110,231,183,0.04); border: 1px solid rgba(110,231,183,0.12); border-radius: var(--radius); padding: 1rem 1.25rem; display: flex; gap: 12px; align-items: flex-start; margin-bottom: 10px; }
+  .insight-icon { font-size: 1.1rem; margin-top: 1px; }
+  .insight-text { font-size: 0.82rem; color: var(--text2); line-height: 1.5; }
+  .insight-text strong { color: var(--text); }
+  input[type=text], select { background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--radius); padding: 8px 12px; color: var(--text); font-family: 'Sora', sans-serif; font-size: 0.82rem; outline: none; }
+  input[type=text]:focus, select:focus { border-color: var(--accent); }
+  select option { background: var(--bg2); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">LeadFlow <span>AI</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPanel('import',this)">Import</button>
+    <button class="nav-tab" onclick="showPanel('leads',this)">All Leads <span class="badge-count" id="lead-count-badge">0</span></button>
+    <button class="nav-tab" onclick="showPanel('pipeline',this)">Pipeline</button>
+    <button class="nav-tab" onclick="showPanel('insights',this)">AI Insights</button>
+  </div>
+  <div class="nav-actions">
+    <span style="font-size:0.75rem;color:var(--text3);font-family:'DM Mono',monospace;">CRM app</span>
+  </div>
+</nav>
+
+<div class="panel active" id="panel-import">
+  <div class="page-header">
+    <h1>Import Leads</h1>
+    <p>Upload a CSV file or use sample data to begin AI-powered enrichment and scoring.</p>
+  </div>
+  <div class="import-zone" id="drop-zone" onclick="document.getElementById('csv-input').click()" ondragover="handleDrag(event,true)" ondragleave="handleDrag(event,false)" ondrop="handleDrop(event)">
+    <div style="font-size:2rem;margin-bottom:12px;opacity:0.4">⬆</div>
+    <h3>Drop CSV file here, or click to browse</h3>
+    <p style="margin-top:4px">Accepts: Name, Company, Title, Email, Website, Industry, LinkedIn</p>
+  </div>
+  <input type="file" id="csv-input" accept=".csv" onchange="handleFileInput(event)"/>
+  <div style="text-align:center;margin:1rem 0;color:var(--text3);font-size:0.78rem;">or try with sample data</div>
+  <div style="text-align:center;margin-bottom:2rem;">
+    <button class="btn btn-ghost" onclick="loadSampleData()">✦ Load 8 Sample Leads</button>
+  </div>
+  <div id="import-preview" style="display:none">
+    <div class="flex-between">
+      <div style="font-size:0.85rem;color:var(--text2)"><span id="import-count">0</span> leads ready to import</div>
+      <div class="flex-gap">
+        <button class="btn btn-ghost btn-sm" onclick="clearImport()">Clear</button>
+        <button class="btn btn-primary" onclick="importAndEnrich()" id="import-btn"><span>✦</span> Import &amp; Enrich with AI</button>
+      </div>
+    </div>
+    <div class="table-wrap" style="margin-top:1rem">
+      <table>
+        <thead><tr><th>#</th><th>Name</th><th>Company</th><th>Title</th><th>Email</th><th>Industry</th></tr></thead>
+        <tbody id="preview-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="panel" id="panel-leads">
+  <div class="page-header"><h1>All Leads</h1><p>AI-enriched contacts with scores, summaries, and email actions.</p></div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-label">Total Leads</div><div class="stat-value" id="stat-total">0</div></div>
+    <div class="stat-card"><div class="stat-label">Enriched</div><div class="stat-value" id="stat-enriched">0</div></div>
+    <div class="stat-card"><div class="stat-label">Avg Score</div><div class="stat-value" id="stat-avg-score">—</div></div>
+    <div class="stat-card"><div class="stat-label">Emails Sent</div><div class="stat-value" id="stat-emailed">0</div></div>
+  </div>
+  <div class="flex-between">
+    <input type="text" id="search-input" placeholder="Search by name, company, title…" style="width:280px" oninput="renderLeadsTable()"/>
+    <div class="flex-gap">
+      <select id="filter-status" onchange="renderLeadsTable()">
+        <option value="">All statuses</option>
+        <option value="new">New</option>
+        <option value="enriched">Enriched</option>
+        <option value="emailed">Emailed</option>
+        <option value="replied">Replied</option>
+      </select>
+      <button class="btn btn-primary btn-sm" onclick="enrichAll()" id="enrich-all-btn" style="display:none">✦ Enrich All</button>
+    </div>
+  </div>
+  <div class="table-wrap" style="margin-top:1rem">
+    <table>
+      <thead><tr><th>Name</th><th>Company / Title</th><th>Industry</th><th>AI Score</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="leads-tbody"></tbody>
+    </table>
+  </div>
+  <div class="empty-state" id="leads-empty"><h3>No leads yet</h3><p>Import a CSV or load sample data from the Import tab.</p></div>
+</div>
+
+<div class="panel" id="panel-pipeline">
+  <div class="page-header"><h1>Pipeline</h1><p>Kanban view of your lead funnel — click any card to open details.</p></div>
+  <div class="pipeline" id="pipeline-board"></div>
+</div>
+
+<div class="panel" id="panel-insights">
+  <div class="page-header"><h1>AI Insights</h1><p>Intelligent analysis of your lead pipeline, generated fresh each time.</p></div>
+  <div id="insights-content"><div class="empty-state"><h3>No data yet</h3><p>Add leads first, then return here.</p></div></div>
+</div>
+
+<div class="modal-overlay" id="lead-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h2 id="modal-name">Lead Detail</h2>
+    <div class="modal-grid" id="modal-fields"></div>
+    <hr/>
+    <div class="modal-section">
+      <label>AI Summary</label>
+      <div id="modal-summary" style="font-size:0.85rem;line-height:1.65;color:var(--text2)"></div>
+      <div class="ai-loader" id="summary-loader" style="display:none"><div class="dots"><span></span><span></span><span></span></div> Generating prospect summary…</div>
+    </div>
+    <div class="modal-section" id="enrichment-section" style="display:none">
+      <label>Enrichment Data</label>
+      <div class="enrich-grid" id="enrich-grid"></div>
+    </div>
+    <hr/>
+    <div class="modal-section">
+      <label style="margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
+        <span>Personalized Cold Email</span>
+        <button class="btn btn-ghost btn-sm" onclick="generateEmail()" id="gen-email-btn">✦ Generate</button>
+      </label>
+      <div class="ai-loader" id="email-loader" style="display:none"><div class="dots"><span></span><span></span><span></span></div> Crafting personalized outreach…</div>
+      <div class="email-box" id="email-box" style="display:none">
+        <div style="font-size:0.72rem;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.07em">Subject</div>
+        <div id="email-subject" style="font-size:0.85rem;color:var(--text);margin-bottom:12px;font-weight:500"></div>
+        <div style="height:1px;background:var(--border);margin-bottom:12px"></div>
+        <textarea id="email-body" rows="8"></textarea>
+        <div class="email-actions">
+          <button class="btn btn-ghost btn-sm" onclick="copyEmail()">Copy</button>
+          <button class="btn btn-primary btn-sm" onclick="markEmailed()">✓ Mark as Sent</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="ai-chat-widget" style="
+position:fixed;
+bottom:24px;
+left:24px;
+width:320px;
+background:var(--bg3);
+border:1px solid var(--border2);
+border-radius:16px;
+z-index:999;
+overflow:hidden;
+box-shadow:0 20px 50px rgba(0,0,0,0.4);
+">
+
+<div style="
+padding:12px 14px;
+border-bottom:1px solid var(--border);
+font-size:0.8rem;
+font-weight:600;
+display:flex;
+justify-content:space-between;
+align-items:center;
+">
+  <span>✦ AI Assistant</span>
+
+  <button onclick="toggleAIChat()" style="
+    background:none;
+    border:none;
+    color:var(--text2);
+    cursor:pointer;
+    font-size:14px;
+  ">✕</button>
+</div>
+
+  <div id="ai-chat-messages" style="
+  height:220px;
+  overflow-y:auto;
+  padding:12px;
+  font-size:0.78rem;
+  color:var(--text2);
+  ">
+    <div style="margin-bottom:10px;">
+      Ask:
+      <br/>
+      “Show high-intent fintech leads”
+    </div>
+  </div>
+
+  <div style="
+  display:flex;
+  border-top:1px solid var(--border);
+  ">
+
+    <input
+      id="ai-chat-input"
+      type="text"
+      placeholder="Ask AI..."
+      style="
+      flex:1;
+      border:none;
+      background:transparent;
+      padding:12px;
+      color:white;
+      outline:none;
+      "
+    />
+
+    <button
+      onclick="sendAIChat()"
+      style="
+      background:var(--accent);
+      border:none;
+      width:60px;
+      cursor:pointer;
+      font-weight:600;
+      "
+    >
+      Send
+    </button>
+
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SAMPLE_LEADS = [
+  { name:"Priya Sharma", company:"NovaTech Solutions", title:"VP of Engineering", email:"priya@novatech.io", industry:"SaaS", website:"novatech.io", linkedin:"linkedin.com/in/priya-sharma", status:"new", score:0, summary:"", email_draft:"", email_subject:"" },
+  { name:"Marcus Webb", company:"Greenfield Capital", title:"Investment Director", email:"m.webb@greenfieldcap.com", industry:"Fintech", website:"greenfieldcap.com", linkedin:"linkedin.com/in/marcuswebb", status:"new", score:0, summary:"", email_draft:"", email_subject:"" },
+  { name:"Yuki Tanaka", company:"Luminary Health", title:"Chief Product Officer", email:"yuki.tanaka@luminaryhealth.com", industry:"HealthTech", website:"luminaryhealth.com", linkedin:"linkedin.com/in/yukitanaka", status:"new", score:0, summary:"", email_draft:"", email_subject:"" },
+  { name:"Aditya Rao", company:"CloudBridge Systems", title:"Founder & CEO", email:"aditya@cloudbridge.in", industry:"Cloud Infrastructure", website:"cloudbridge.in", linkedin:"linkedin.com/in/adityarao", status:"new", score:0, summary:"", email_draft:"", email_subject:"" },
+  { name:"Sofia Müller", company:"EcoRetail GmbH", title:"Head of Digital Transformation", email:"s.muller@ecoretail.de", industry:"Retail", website:"ecoretail.de", linkedin:"linkedin.com/in/sofiamuller", status:"new", score:0, summary:"", email_draft:"", email_subject:"" },
+  { name:"James O'Brien", company:"DataVault Analytics", title:"CTO", email:"james@datavault.io", industry:"Data & AI", website:"datavault.io", linkedin:"linkedin.com/in/jamesobrien", status:"new", score:0, summary:"", email_draft:"", email_subject:"" },
+  { name:"Lena Petrova", company:"ScaleOps Inc", title:"Director of Sales", email:"lena.p@scaleops.com", industry:"B2B SaaS", website:"scaleops.com", linkedin:"linkedin.com/in/lenapetrova", status:"new", score:0, summary:"", email_draft:"", email_subject:"" },
+  { name:"Chen Wei", company:"Horizon Robotics", title:"Business Development Lead", email:"chen.wei@horizonrobotics.com", industry:"Robotics & AI", website:"horizonrobotics.com", linkedin:"linkedin.com/in/chenwei", status:"new", score:0, summary:"", email_draft:"", email_subject:"" }
+];
+
+let leads = [];
+let pendingImport = [];
+let currentLeadIndex = -1;
+const PIPELINE_STAGES = ["new","enriched","emailed","replied"];
+const STAGE_LABELS = { new:"New Leads", enriched:"Enriched", emailed:"Contacted", replied:"Replied" };
+
+function showPanel(name, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  el.classList.add('active');
+  if(name==='leads') renderLeadsTable();
+  if(name==='pipeline') renderPipeline();
+  if(name==='insights') renderInsights();
+}
+
+function loadSampleData() {
+  pendingImport = SAMPLE_LEADS.map(l => ({...l}));
+  showPreview();
+}
+
+function handleDrag(e,on) { e.preventDefault(); document.getElementById('drop-zone').classList.toggle('drag',on); }
+function handleDrop(e) { e.preventDefault(); handleDrag(e,false); parseCSV(e.dataTransfer.files[0]); }
+function handleFileInput(e) { parseCSV(e.target.files[0]); }
+
+function parseCSV(file) {
+
+  if (!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = (e) => {
+
+    const text = e.target.result.trim();
+
+    const rows = text.split(/\r?\n/);
+
+    if (rows.length < 2) {
+      showToast('Invalid CSV file');
+      return;
+    }
+
+    const headers = rows[0]
+      .split(',')
+      .map(h => h.trim().toLowerCase());
+
+    pendingImport = [];
+
+    for (let i = 1; i < rows.length; i++) {
+
+      const cols = rows[i]
+        .split(',')
+        .map(c => c.trim());
+
+      if (cols.length < 2) continue;
+
+      const lead = {
+        status: 'new',
+        score: 0,
+        summary: '',
+        email_draft: '',
+        email_subject: ''
+      };
+
+      headers.forEach((header, index) => {
+
+        const value = cols[index] || '';
+
+        if (header.includes('name')) {
+          lead.name = value;
+        }
+
+        else if (header.includes('company')) {
+          lead.company = value;
+        }
+
+        else if (header.includes('title')) {
+          lead.title = value;
+        }
+
+        else if (header.includes('email')) {
+          lead.email = value;
+        }
+
+        else if (header.includes('industry')) {
+          lead.industry = value;
+        }
+
+        else if (header.includes('website')) {
+          lead.website = value;
+        }
+
+        else if (header.includes('linkedin')) {
+          lead.linkedin = value;
+        }
+
+      });
+
+      if (!lead.name || lead.name === '') continue;
+
+      pendingImport.push(lead);
+    }
+
+    if (pendingImport.length === 0) {
+
+      showToast('No valid leads found');
+
+      return;
+    }
+
+    showPreview();
+
+    showToast(`✓ Loaded ${pendingImport.length} leads`);
+  };
+
+  reader.readAsText(file);
+}
+
+function showPreview() {
+  document.getElementById('import-preview').style.display='block';
+  document.getElementById('import-count').textContent = pendingImport.length;
+  const tbody = document.getElementById('preview-tbody');
+  tbody.innerHTML = pendingImport.map((l,i) => `<tr>
+    <td style="color:var(--text3)">${i+1}</td>
+    <td class="name-cell">${l.name}</td><td>${l.company||'—'}</td>
+    <td>${l.title||'—'}</td>
+    <td style="font-family:'DM Mono',monospace;font-size:0.76rem">${l.email||'—'}</td>
+    <td>${l.industry||'—'}</td></tr>`).join('');
+}
+
+function clearImport() { pendingImport=[]; document.getElementById('import-preview').style.display='none'; }
+
+async function importAndEnrich() {
+  if(!pendingImport.length) return;
+  const btn = document.getElementById('import-btn');
+  btn.disabled = true; btn.textContent = '✦ Enriching with AI…';
+  leads = [...leads, ...pendingImport.map(l => ({...l}))];
+  updateBadge();
+  for(let i=0; i<leads.length; i++) {
+    if(leads[i].status !== 'new') continue;
+    await enrichLead(i);
+    renderLeadsTable();
+    renderPipeline();
+  }
+  pendingImport = [];
+  document.getElementById('import-preview').style.display='none';
+  btn.disabled=false; btn.innerHTML='<span>✦</span> Import &amp; Enrich with AI';
+  showToast(`✓ ${leads.length} leads imported and enriched`);
+  updateStats();
+  document.querySelectorAll('.nav-tab')[1].click();
+}
+
+async function callAI(prompt, maxTokens = 1000) {
+
+  try {
+
+    const resp = await fetch('/api/ai', {
+      method: 'POST',
+
+      headers: {
+        'Content-Type': 'application/json'
+      },
+
+      body: JSON.stringify({
+        max_tokens: maxTokens,
+
+        messages: [
+          {
+            role: 'user',
+            content: prompt
+          }
+        ]
+      })
+    });
+
+    // Handle server errors
+    if (!resp.ok) {
+
+      const errText = await resp.text();
+
+      console.error('Server Error:', errText);
+
+      throw new Error(errText);
+    }
+
+    const data = await resp.json();
+
+    console.log('AI Response:', data);
+
+    // Safe return
+    if (
+      data &&
+      data.content &&
+      data.content[0] &&
+      data.content[0].text
+    ) {
+      return data.content[0].text;
+    }
+
+    return 'No AI response';
+
+  } catch (err) {
+
+    console.error('callAI Error:', err);
+
+    return 'AI request failed';
+  }
+}
+
+async function enrichLead(i) {
+  const lead = leads[i];
+  try {
+    const text = await callAI(`You are an AI lead enrichment engine. Given this B2B sales lead, return ONLY a JSON object (no markdown, no explanation) with these exact fields:
+    
+{
+  "score": <integer 1-100>,
+  "score_reason": <one short sentence>,
+  "company_size": <"1-10", "11-50", "51-200", "201-1000", or "1000+">,
+  "company_stage": <"Startup", "Growth", "Enterprise", or "SMB">,
+  "buying_intent": <"High", "Medium", or "Low">,
+  "decision_maker": <true or false>,
+  "pain_points": [<2-3 short strings>],
+  "best_channel": <"Email", "LinkedIn", or "Phone">
+}
+
+Name: ${lead.name}
+Company: ${lead.company||'Unknown'}
+Title: ${lead.title||'Unknown'}
+Industry: ${lead.industry||'Unknown'}
+Website: ${lead.website||'Unknown'}`);
+    const enriched = JSON.parse(text.replace(/```json|```/g,'').trim());
+    leads[i] = { ...lead, ...enriched, status:'enriched' };
+  } catch(e) {
+    leads[i].score = Math.floor(40 + Math.random()*55);
+    leads[i].status = 'enriched';
+    leads[i].company_size = '51-200';
+    leads[i].company_stage = 'Growth';
+    leads[i].buying_intent = ['High','Medium','Low'][Math.floor(Math.random()*3)];
+    leads[i].decision_maker = Math.random()>0.3;
+    leads[i].pain_points = ['Scaling operations','Lead conversion','Team productivity'];
+    leads[i].best_channel = 'Email';
+  }
+  updateStats();
+}
+
+function renderLeadsTable() {
+  const tbody = document.getElementById('leads-tbody');
+  const empty = document.getElementById('leads-empty');
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const filterStatus = document.getElementById('filter-status').value;
+  let filtered = leads.filter(l => {
+    const matchSearch = !search || [l.name,l.company,l.title,l.industry].some(f => (f||'').toLowerCase().includes(search));
+    const matchStatus = !filterStatus || l.status === filterStatus;
+    return matchSearch && matchStatus;
+  });
+  if(!filtered.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML = filtered.map(l => {
+    const idx = leads.indexOf(l);
+    return `<tr onclick="openLead(${idx})">
+      <td class="name-cell">
+        <div>${l.name}</div>
+        <div style="font-size:0.72rem;font-family:'DM Mono',monospace;color:var(--text3)">${l.email||''}</div>
+      </td>
+      <td><div style="color:var(--text)">${l.company||'—'}</div><div style="font-size:0.72rem;color:var(--text3)">${l.title||''}</div></td>
+      <td>${l.industry||'—'}</td>
+      <td>${l.score ? `<div class="score-bar">
+        <div class="score-track"><div class="score-fill" style="width:${l.score}%;background:${l.score>=70?'var(--accent)':l.score>=45?'var(--amber)':'var(--red)'}"></div></div>
+        <span style="font-size:0.78rem;color:var(--text2)">${l.score}</span></div>` : '<span style="color:var(--text3)">—</span>'}</td>
+      <td><span class="status-pill status-${l.status}">${l.status}</span></td>
+      <td>
+  <div class="flex-gap">
+    <button
+      class="btn btn-ghost btn-sm"
+      onclick="event.stopPropagation();openLead(${idx})">
+      View
+    </button>
+
+    ${l.status==='new'
+      ? `<button
+          class="btn btn-ghost btn-sm"
+          onclick="event.stopPropagation();enrichSingle(${idx})">
+          Enrich
+        </button>`
+      : ''
+    }
+  </div>
+</td>
+        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openLead(${idx})">View</button>
+        ${l.status==='new'?`<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();enrichSingle(${idx})">Enrich</button>`:''}
+      </div></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('enrich-all-btn').style.display = leads.some(l=>l.status==='new') ? 'inline-flex' : 'none';
+}
+
+async function enrichSingle(idx) {
+  showToast('Enriching lead…');
+  await enrichLead(idx);
+  renderLeadsTable(); renderPipeline(); updateStats();
+  showToast('✓ Lead enriched');
+}
+
+async function enrichAll() {
+  showToast('Enriching all new leads…');
+  for(let i=0;i<leads.length;i++) { if(leads[i].status==='new') await enrichLead(i); }
+  renderLeadsTable(); renderPipeline(); updateStats();
+  showToast('✓ All leads enriched');
+}
+
+function renderPipeline() {
+  document.getElementById('pipeline-board').innerHTML = PIPELINE_STAGES.map(stage => {
+    const stageLeads = leads.filter(l => l.status===stage);
+    return `<div class="pipeline-col">
+      <div class="pipeline-col-header">
+        <span class="pipeline-col-title" style="color:${stage==='new'?'var(--blue)':stage==='enriched'?'var(--purple)':stage==='emailed'?'var(--accent)':'var(--amber)'}">${STAGE_LABELS[stage]}</span>
+        <span class="col-count">${stageLeads.length}</span>
+      </div>
+      ${stageLeads.map(l => {
+        const idx = leads.indexOf(l);
+        return `<div class="pipeline-card" onclick="openLead(${idx})">
+          <div class="pipeline-card-name">${l.name}</div>
+          <div class="pipeline-card-company">${l.company||''} ${l.title?'· '+l.title:''}</div>
+          <div class="pipeline-card-score">
+            <span style="font-size:0.7rem;color:var(--text3)">${l.industry||''}</span>
+            ${l.score?`<span style="font-size:0.75rem;font-weight:600;color:${l.score>=70?'var(--accent)':l.score>=45?'var(--amber)':'var(--red)'}">${l.score}</span>`:''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+
+async function renderInsights() {
+  const container = document.getElementById('insights-content');
+  if(!leads.length) { container.innerHTML='<div class="empty-state"><h3>No data yet</h3><p>Add leads first.</p></div>'; return; }
+  container.innerHTML = `<div class="ai-loader"><div class="dots"><span></span><span></span><span></span></div> Generating AI insights…</div>`;
+  const summary = {
+    total: leads.length,
+    enriched: leads.filter(l=>l.status!=='new').length,
+    emailed: leads.filter(l=>['emailed','replied'].includes(l.status)).length,
+    replied: leads.filter(l=>l.status==='replied').length,
+    avgScore: Math.round(leads.filter(l=>l.score).reduce((a,b)=>a+b.score,0)/(leads.filter(l=>l.score).length||1)),
+    industries: [...new Set(leads.map(l=>l.industry).filter(Boolean))].join(', '),
+    highScore: leads.filter(l=>l.score>=70).length,
+    decisionMakers: leads.filter(l=>l.decision_maker).length
+  };
+  try {
+    const text = await callAI(`You are a B2B sales analytics AI. Return ONLY a JSON array (no markdown) of 5 insight objects: [{"icon":"<emoji>","title":"<short title>","text":"<2 sentences with numbers and recommendations>"}]
+Pipeline: ${JSON.stringify(summary)}
+Leads: ${JSON.stringify(leads.map(l=>({name:l.name,company:l.company,industry:l.industry,score:l.score,buying_intent:l.buying_intent,decision_maker:l.decision_maker})))}`);
+    const insights = JSON.parse(text.replace(/```json|```/g,'').trim());
+    container.innerHTML = `
+      <div class="stats-row" style="margin-bottom:2rem">
+        <div class="stat-card"><div class="stat-label">Pipeline Health</div><div class="stat-value" style="color:${summary.avgScore>=60?'var(--accent)':'var(--amber)'}">${summary.avgScore}</div><div class="stat-delta">avg AI score</div></div>
+        <div class="stat-card"><div class="stat-label">High-Value Leads</div><div class="stat-value">${summary.highScore}</div><div class="stat-delta">score ≥ 70</div></div>
+        <div class="stat-card"><div class="stat-label">Decision Makers</div><div class="stat-value">${summary.decisionMakers}</div><div class="stat-delta">of ${summary.total} total</div></div>
+        <div class="stat-card"><div class="stat-label">Reply Rate</div><div class="stat-value">${summary.emailed?Math.round(summary.replied/summary.emailed*100):0}%</div><div class="stat-delta">${summary.replied} of ${summary.emailed} emailed</div></div>
+      </div>
+      <div style="margin-bottom:1rem;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3)">AI-generated insights</div>
+      ${insights.map(ins=>`<div class="insight-card"><div class="insight-icon">${ins.icon}</div><div class="insight-text"><strong>${ins.title}</strong><br/>${ins.text}</div></div>`).join('')}`;
+  } catch(e) {
+    container.innerHTML = `<div class="insight-card"><div class="insight-icon">⚠</div><div class="insight-text">Could not generate insights. Make sure server.js is running with a valid API key.</div></div>`;
+  }
+}
+
+function openLead(idx) {
+  currentLeadIndex = idx;
+  const l = leads[idx];
+  document.getElementById('modal-name').textContent = l.name;
+  document.getElementById('lead-modal').classList.add('open');
+  document.getElementById('modal-fields').innerHTML = [
+    ['Company',l.company||'—'],['Title',l.title||'—'],
+    ['Email',l.email||'—'],['Industry',l.industry||'—'],
+    ['Website',l.website||'—'],['LinkedIn',l.linkedin||'—']
+  ].map(([k,v])=>`<div class="modal-field"><div class="modal-field-label">${k}</div><div class="modal-field-value">${v}</div></div>`).join('');
+  const sumEl = document.getElementById('modal-summary');
+  if(l.summary) { sumEl.textContent=l.summary; sumEl.style.color='var(--text2)'; }
+  else if(l.status!=='new') { sumEl.textContent=''; document.getElementById('summary-loader').style.display='flex'; generateSummary(idx); }
+  else { sumEl.textContent='Enrich this lead first to generate a summary.'; sumEl.style.color='var(--text3)'; }
+  const enrichSection = document.getElementById('enrichment-section');
+  if(l.pain_points) {
+    enrichSection.style.display='block';
+    document.getElementById('enrich-grid').innerHTML = [
+      ['Score',l.score+'/100'],['Company Stage',l.company_stage||'—'],
+      ['Company Size',l.company_size||'—'],['Buying Intent',l.buying_intent||'—'],
+      ['Decision Maker',l.decision_maker?'Yes':'No'],['Best Channel',l.best_channel||'—'],
+      ['Pain Points',(l.pain_points||[]).join(', '),true]
+    ].map(([k,v,wide])=>`<div class="enrich-tag"${wide?' style="grid-column:1/-1"':''}><div class="enrich-tag-label">${k}</div><div class="enrich-tag-value">${v}</div></div>`).join('');
+  } else { enrichSection.style.display='none'; }
+  const emailBox = document.getElementById('email-box');
+  if(l.email_draft) {
+    emailBox.style.display='block';
+    document.getElementById('email-subject').textContent=l.email_subject;
+    document.getElementById('email-body').value=l.email_draft;
+  } else { emailBox.style.display='none'; }
+}
+
+async function generateSummary(idx) {
+  const l = leads[idx];
+  try {
+    const text = await callAI(`Write a 3-sentence sales intelligence summary for this B2B prospect. Be specific and insightful. Sound like a top SDR briefing their AE.
+Name: ${l.name}, Title: ${l.title}, Company: ${l.company}, Industry: ${l.industry}, Score: ${l.score}/100, Buying Intent: ${l.buying_intent}, Pain Points: ${(l.pain_points||[]).join(', ')}`, 300);
+    leads[idx].summary = text;
+    document.getElementById('summary-loader').style.display='none';
+    document.getElementById('modal-summary').textContent = text;
+    document.getElementById('modal-summary').style.color='var(--text2)';
+  } catch(e) {
+    document.getElementById('summary-loader').style.display='none';
+    document.getElementById('modal-summary').textContent = 'Could not generate summary.';
+  }
+}
+
+async function generateEmail() {
+  const l = leads[currentLeadIndex];
+  document.getElementById('gen-email-btn').disabled=true;
+  document.getElementById('email-loader').style.display='flex';
+  document.getElementById('email-box').style.display='none';
+  try {
+    const text = await callAI(`
+Return ONLY valid JSON.
+
+No explanation.
+No extra text.
+No markdown.
+
+Format EXACTLY:
+{"subject":"string","body":"string"}
+
+Write a personalized cold outreach email.
+
+Rules:
+- 3–4 short paragraphs
+- Conversational tone
+- Mention their pain points
+- Include a soft CTA (15-min call)
+- Do NOT add anything outside JSON
+
+Lead details:
+Name: ${l.name}
+Title: ${l.title}
+Company: ${l.company}
+Industry: ${l.industry}
+Pain points: ${(l.pain_points||['scaling operations']).join(', ')}
+`, 600);
+    // 🔥 SAFE HANDLING (NO JSON BREAK)
+
+let clean = text.replace(/```json|```/g,'').trim();
+
+// Try JSON parse first
+let subject = "";
+let body = "";
+
+try {
+  const match = clean.match(/\{[\s\S]*\}/);
+  if (match) {
+    const parsed = JSON.parse(match[0]);
+    subject = parsed.subject || "";
+    body = parsed.body || "";
+  }
+} catch (e) {
+  console.log("JSON parse failed, fallback to raw text");
+}
+
+// 🔥 FALLBACK if JSON fails
+if (!subject || !body) {
+  const lines = clean.split('\n');
+
+  subject = lines[0].replace(/^subject[:\-]*/i, '').trim();
+  body = clean;
+}
+
+// Save
+leads[currentLeadIndex].email_subject = subject || "AI Generated Email";
+leads[currentLeadIndex].email_draft = body;
+
+// Show UI
+document.getElementById('email-loader').style.display='none';
+document.getElementById('email-box').style.display='block';
+
+document.getElementById('email-subject').textContent = subject || "AI Generated Email";
+document.getElementById('email-body').value = body;
+  } catch(e) {
+    document.getElementById('email-loader').style.display='none';
+    document.getElementById('email-box').style.display='block';
+    document.getElementById('email-subject').textContent = 'Quick question about '+l.company;
+    document.getElementById('email-body').value = 'Hi '+l.name.split(' ')[0]+',\n\n[Check your API key and try again]';
+  }
+  document.getElementById('gen-email-btn').disabled=false;
+}
+
+function copyEmail() {
+  navigator.clipboard.writeText('Subject: '+document.getElementById('email-subject').textContent+'\n\n'+document.getElementById('email-body').value);
+  showToast('✓ Email copied to clipboard');
+}
+
+function markEmailed() {
+  leads[currentLeadIndex].status='emailed';
+  updateStats(); updateBadge(); renderPipeline();
+  showToast('✓ Lead marked as emailed');
+  closeModal();
+}
+
+function closeModal() { document.getElementById('lead-modal').classList.remove('open'); }
+
+function updateStats() {
+  document.getElementById('stat-total').textContent = leads.length;
+  document.getElementById('stat-enriched').textContent = leads.filter(l=>l.status!=='new').length;
+  const scored = leads.filter(l=>l.score);
+  document.getElementById('stat-avg-score').textContent = scored.length ? Math.round(scored.reduce((a,b)=>a+b.score,0)/scored.length) : '—';
+  document.getElementById('stat-emailed').textContent = leads.filter(l=>['emailed','replied'].includes(l.status)).length;
+}
+
+function updateBadge() { document.getElementById('lead-count-badge').textContent = leads.length; }
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+document.getElementById('lead-modal').addEventListener('click', e => { if(e.target.id==='lead-modal') closeModal(); });
+
+// Expose for nav tabs
+const flex_gap_ref = null;
+function toggleAIChat() {
+  const widget = document.getElementById('ai-chat-widget');
+  const button = document.getElementById('ai-open-btn');
+
+  if (widget.style.display === 'none') {
+    widget.style.display = 'block';
+    button.style.display = 'none';
+  } else {
+    widget.style.display = 'none';
+    button.style.display = 'block';
+  }
+}
+// 🔥 AI CHAT FUNCTION (REQUIRED)
+async function sendAIChat() {
+  const input = document.getElementById('ai-chat-input');
+  const messages = document.getElementById('ai-chat-messages');
+
+  const query = input.value.trim();
+  if (!query) return;
+
+  // Show user message
+  messages.innerHTML += `
+    <div style="margin-bottom:8px;color:white">
+      <strong>You:</strong> ${query}
+    </div>
+  `;
+
+  input.value = '';
+
+  // Loading message
+  const loading = document.createElement("div");
+  loading.style.color = "var(--text3)";
+  loading.style.marginBottom = "8px";
+  loading.innerText = "AI is thinking...";
+  messages.appendChild(loading);
+
+  messages.scrollTop = messages.scrollHeight;
+
+  try {
+    const response = await callAI(`
+You are a CRM AI assistant.
+
+User query:
+"${query}"
+
+Leads:
+${JSON.stringify(leads)}
+
+Respond clearly and helpfully.
+`);
+
+    loading.remove();
+
+    messages.innerHTML += `
+      <div style="margin-bottom:12px;color:var(--accent)">
+        <strong>AI:</strong> ${response}
+      </div>
+    `;
+
+  } catch (err) {
+    loading.remove();
+    messages.innerHTML += `<div style="color:red">Error getting response</div>`;
+  }
+
+  messages.scrollTop = messages.scrollHeight;
+}
+</script>
+<!-- 🔥 AI OPEN BUTTON -->
+<button id="ai-open-btn" onclick="toggleAIChat()" style="
+position:fixed;
+bottom:24px;
+left:24px;
+width:52px;
+height:52px;
+border-radius:50%;
+background:var(--accent);
+border:none;
+cursor:pointer;
+z-index:998;
+display:none;
+font-size:18px;
+font-weight:bold;
+box-shadow:0 10px 25px rgba(0,0,0,0.4);
+">
+✦
+</button>
+</body>
+</html>
