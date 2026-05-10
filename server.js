@@ -1,6 +1,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const fetch = global.fetch || require('node-fetch');
 
 const PORT = 3000;
 
@@ -47,9 +48,19 @@ const server = http.createServer((req, res) => {
         const parsed = JSON.parse(body);
 
         // Convert frontend messages into prompt
-        const prompt = (parsed.messages || [])
-          .map(m => m.content)
-          .join('\n');
+        const userPrompt = (parsed.messages || [])
+  .map(m => m.content)
+  .join('\n');
+
+// 🔥 FORCE JSON OUTPUT
+const prompt = `
+You MUST return ONLY valid JSON.
+NO markdown.
+NO explanation.
+NO extra text.
+
+${userPrompt}
+`;
 
         // =================================================
         // CALL OLLAMA
@@ -82,8 +93,13 @@ const server = http.createServer((req, res) => {
 
         console.log('Ollama Response:', data);
 
-        const text =
-          data.response || 'No response from Ollama';
+        let text = data.response || '';
+
+// 🔥 CLEAN BAD OUTPUT
+text = text
+  .replace(/```json/g, '')
+  .replace(/```/g, '')
+  .trim();
 
         // =================================================
         // RETURN RESPONSE TO FRONTEND
